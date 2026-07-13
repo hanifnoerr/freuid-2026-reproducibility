@@ -17,7 +17,7 @@ class A100NotebookTests(unittest.TestCase):
         )
 
         self.assertIn('"--upgrade"', source)
-        self.assertIn('"kaggle==1.7.4.5"', source)
+        self.assertIn('"kaggle==2.2.2"', source)
         self.assertIn('"kaggle", "competitions", "download"', source)
         self.assertIn('ZIP_PATH = WORK_DIR / f"{COMPETITION}.zip"', source)
         self.assertIn('subprocess.run(["unzip", "-q", "-o"', source)
