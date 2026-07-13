@@ -7,7 +7,7 @@ Fill this before posting the Kaggle reproducibility reply.
 - Private test release date: July 13, 2026
 - Final Kaggle deadline: July 15, 2026, 23:59 AoE
 - Public repository URL: https://github.com/hanifnoerr/freuid-2026-reproducibility
-- Frozen commit SHA: TODO
+- Frozen commit SHA: `707309a0fb08b176858bfb4e9909b45ef728cdb5`
 - Branch/tag: `main` / `freuid-code-freeze-2026-07-13`
 - OSI license: MIT
 
