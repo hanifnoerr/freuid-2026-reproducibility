@@ -97,6 +97,7 @@ verification is complete. If Drive access fails, copy the checkpoint to
 ```bash
 mkdir -p out
 docker run --rm --network none \
+  --gpus all \
   -v /path/to/flat/test/images:/data:ro \
   -v "$PWD/out:/submissions" \
   freuid-repro:local
@@ -107,6 +108,7 @@ docker run --rm --network none \
 ```bash
 mkdir -p out
 docker run --rm --network none \
+  --gpus all \
   -v /path/to/flat/test/images:/data:ro \
   -v /path/to/final_checkpoint.pt:/models/model.pt:ro \
   -v "$PWD/out:/submissions" \

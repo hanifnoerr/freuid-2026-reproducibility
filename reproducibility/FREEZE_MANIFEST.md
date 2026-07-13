@@ -65,6 +65,7 @@ cd reproducibility
 docker build -t freuid-repro:local .
 mkdir -p out
 docker run --rm --network none \
+  --gpus all \
   -v /path/to/flat/test/images:/data:ro \
   -v "$PWD/out:/submissions" \
   freuid-repro:local

@@ -2,6 +2,11 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 out/
+smoke_data/
+smoke_out/
 *.csv
 *.log
 *.tmp
+discussion_*.json
+forum_topics_*.json
+competition_current.json
