@@ -1,0 +1,19 @@
+---
+FREUID Challenge 2026 - Reproducibility Package
+---
+
+Team name: TODO
+Kaggle usernames: TODO
+Final Kaggle submission: submission_convnextv2_g4_672_alltrain.csv
+Public leaderboard score: 0.00267
+
+Repository (public git repository): TODO
+Commit SHA: TODO
+Technical report (PDF): TODO
+Checkpoint storage: https://drive.google.com/drive/folders/15pj--qzgwVzq-KjH7kJUcxnTS3ZA5c2P?usp=sharing
+
+We confirm this repository at the stated commit reproduces our selected final
+submission and complies with the competition rules.
+
+Signed (team captain): TODO
+Date (UTC): TODO

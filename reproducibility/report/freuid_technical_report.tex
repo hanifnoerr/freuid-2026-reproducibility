@@ -1,0 +1,87 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\title{FREUID Challenge 2026 Technical Report}
+\author{Hanif Noer Rofiq}
+\date{July 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+This report describes the final FREUID Challenge 2026 submission. The task is binary fraud detection for identity-document images. Scores are numeric fraud probabilities, where higher values indicate higher confidence that a document is fraudulent.
+
+\section{Method}
+The final model is based on \texttt{convnextv2\_large.fcmae\_ft\_in22k\_in1k\_384} from \texttt{timm}, fine-tuned as a single-logit binary classifier.
+
+Images are resized/cropped to \texttt{672x672}. Training augmentations used random resized crop with scale \texttt{0.88--1.0}, color jitter, light Gaussian blur, and small rotation. Inference uses resize to \texttt{672}, center crop, ImageNet normalization, and sigmoid conversion from logits to fraud probabilities.
+
+\section{Data}
+The model uses the official FREUID Challenge training data. The local training labels contain 69,352 rows, with 40,005 negative and 29,347 positive labels.
+
+External resources:
+\begin{itemize}
+  \item \texttt{timm} pretrained ConvNeXtV2 weights.
+  \item PyTorch, torchvision, Pillow, and timm runtime dependencies.
+  \item Final checkpoint hosted in a public Google Drive folder for Docker build-time retrieval.
+\end{itemize}
+
+\section{Training}
+Training was performed in Google Colab/GPU environment using the notebooks in this repository.
+
+\begin{itemize}
+  \item Main notebook: \texttt{notebooks/freuid\_convnextv2\_g4\_672\_alltrain\_best\_public.ipynb}
+  \item Batch size: 24
+  \item Initial learning rate: \texttt{1e-5}
+  \item Weight decay: \texttt{0.05}
+  \item Training epochs: 3
+  \item Final selected checkpoint: epoch 3 \texttt{best.pt} from the run that produced the public score below
+\end{itemize}
+
+\section{Results}
+The current selected model is the user-reported best public leaderboard submission.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Item & Value \\
+\midrule
+Final submission label/time & \texttt{submission\_convnextv2\_g4\_672\_alltrain.csv} / TODO time \\
+Public score & 0.00267 \\
+Private score & TODO \\
+Selected checkpoint SHA256 & TODO \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Inference}
+The Docker package reads a flat image directory mounted at \texttt{/data} and writes \texttt{/submissions/submission.csv}. The row id is the filename stem. The Docker runtime does not require network access.
+
+\section{Reproducibility}
+Build and run. The Docker build downloads the final checkpoint from the
+documented public Google Drive folder if it is not already present under
+\texttt{reproducibility/model/model.pt}. Inference itself uses no network.
+
+\begin{verbatim}
+cd reproducibility
+docker build -t freuid-repro:local .
+mkdir -p out
+docker run --rm --network none \
+  -v /path/to/flat/test/images:/data:ro \
+  -v "$PWD/out:/submissions" \
+  freuid-repro:local
+\end{verbatim}
+
+If the model checkpoint is not baked into the image, mount it read-only:
+
+\begin{verbatim}
+docker run --rm --network none \
+  -v /path/to/flat/test/images:/data:ro \
+  -v /path/to/final_checkpoint.pt:/models/model.pt:ro \
+  -v "$PWD/out:/submissions" \
+  freuid-repro:local
+\end{verbatim}
+
+\end{document}
