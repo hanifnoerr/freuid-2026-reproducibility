@@ -72,7 +72,7 @@ Strict build with the expected checkpoint filename and SHA256:
 cd reproducibility
 docker build \
   --build-arg MODEL_CHECKPOINT_NAME=best.pt \
-  --build-arg MODEL_SHA256=TODO_CHECKPOINT_SHA256 \
+  --build-arg MODEL_SHA256=bb3870c09ec7fa21255df1cff40b6cd2ff5a7290904562d8e43a284e4ba5c41a \
   -t freuid-repro:local .
 ```
 
@@ -124,12 +124,8 @@ out/run_summary.json
 
 `submission.csv` contains one row for each image in `/data`.
 
-## Fill Before Final Reply
+## Final Reply
 
-Update:
-
-- `FREEZE_MANIFEST.md`
-- `report/freuid_technical_report.tex`, then compile to PDF
-- `REPLY_TEMPLATE.txt`
-
-Post exactly one reply on the pinned Kaggle discussion thread by July 15, 2026, 23:59 AoE.
+Use `REPLY_TEMPLATE.txt` and replace its bracketed fields with the exact Kaggle
+submission timestamp and frozen package commit/PDF URL. Post exactly one reply
+on the pinned Kaggle discussion thread by July 15, 2026, 23:59 AoE.

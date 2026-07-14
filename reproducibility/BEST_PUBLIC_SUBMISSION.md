@@ -66,3 +66,18 @@ For the final prize/reproducibility package, do not change:
 - output semantics where higher score means more likely fraudulent
 
 Allowed final work is packaging: export the selected checkpoint, compute hashes, build/test Docker, write the PDF report, and post the required Kaggle reproducibility reply.
+
+## Complete-Test Rerun
+
+The unchanged epoch-3 checkpoint was rerun after all test images became
+available. This is the selected complete submission for the final package:
+
+- Kaggle submission file: `submission_convnextv2_epoch03_newest_a100.csv`
+- Public leaderboard score: `0.00283`
+- Rows: `142,818`, all produced from resolved images
+- CSV SHA256: `94a6ae437bf44848ef51490bdc90475d8454445f488b97cca124cf3a62d48b9b`
+- A100 inference time: `34.28` minutes at batch size `8`
+
+The earlier `0.00267` result remains the historical score used to select the
+frozen model. No model, weight, preprocessing, or training change was made for
+the complete-test rerun.

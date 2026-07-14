@@ -19,7 +19,9 @@ class TechnicalReportTests(unittest.TestCase):
             "Google Colab",
             "G4",
             "96~GB",
-            "0.00267",
+            "0.00283",
+            "submission_convnextv2_epoch03_newest_a100.csv",
+            "94a6ae437bf44848ef51490bdc90475d8454445f488b97cca124cf3a62d48b9b",
             "unavailable when this report was prepared",
             "bb3870c09ec7fa21255df1cff40b6cd2ff5a7290904562d8e43a284e4ba5c41a",
             "/submissions/submission.csv",
@@ -31,6 +33,7 @@ class TechnicalReportTests(unittest.TestCase):
 
         self.assertNotIn("TO" + "DO", source)
         self.assertNotIn("T" + "BD", source)
+        self.assertNotIn("score of \\textbf{0.00267}", source)
 
     def test_bibliography_contains_supplied_competition_citation(self):
         source = BIBLIOGRAPHY.read_text(encoding="utf-8")

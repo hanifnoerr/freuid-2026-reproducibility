@@ -30,7 +30,8 @@ ConvNeXtV2-Large classifier at $672\!\times\!672$ resolution using all 69,352
 labeled training images. The training recipe is intentionally direct: mild
 photometric and geometric augmentation, binary cross-entropy, AdamW, cosine
 learning-rate decay, and mixed-precision optimization. A single model obtained
-a public leaderboard FREUID score of \textbf{0.00267} (lower is better). The
+a public leaderboard FREUID score of \textbf{0.00283} (lower is better) on the
+complete 142,818-image submission. The
 private score was unavailable when this report was prepared. We release the
 training notebook, frozen checkpoint identity, and a network-isolated Docker
 inference path.
@@ -64,11 +65,13 @@ visible data cover five country/document-type groups: Egypt, Guinea, Benin,
 Mozambique, and Mauritius. We do not use external identity-document images,
 pseudo-labels, or synthetic training samples.
 
-During the public phase, 7,821 test images were available although the sample
-submission contained 142,818 identifiers. Following the organizer's protocol,
-the unavailable private identifiers were assigned placeholders; those values
-were not evaluated on the public leaderboard. The released Docker pipeline does
-not use placeholders: it produces one prediction for each image mounted by the
+During the initial public phase, 7,821 test images were available although the
+sample submission contained 142,818 identifiers. Following the organizer's
+protocol, the unavailable identifiers were assigned placeholders and were not
+evaluated at that stage. After the complete test release, the selected final
+submission was regenerated from 142,818 resolved images. It contains model
+predictions for every identifier and no placeholders. The Docker pipeline uses
+the same rule: it produces one prediction for each image mounted by the
 organizer.
 
 The only external model resource is the ConvNeXtV2-Large FCMAE checkpoint
@@ -144,11 +147,12 @@ Because the final run has no validation partition, the checkpoint named
 epoch-3 checkpoint produced by the frozen notebook.
 
 \section{Results}
-The selected all-train ConvNeXtV2 submission achieved a public leaderboard
-FREUID score of \textbf{0.00267}. Lower scores are better. The private score was
-unavailable when this report was prepared, so we do not report or infer a
-private-set result. The submission is produced by a single checkpoint and a
-single deterministic center-crop inference pass.
+The selected complete-test ConvNeXtV2 submission achieved a public leaderboard
+FREUID score of \textbf{0.00283}. Lower scores are better. All 142,818 rows were
+generated from resolved test images. The private score was unavailable when
+this report was prepared, so we do not report or infer a private-set result.
+The submission is produced by a single checkpoint and a single deterministic
+center-crop inference pass.
 
 \section{Reproducibility}
 The Docker build retrieves the selected checkpoint from public storage and
@@ -192,7 +196,8 @@ model ensembles in future work.
 Our submission is a single high-resolution ConvNeXtV2-Large fraud classifier
 trained on the complete official training set. A small augmentation policy and
 standard binary optimization were sufficient to obtain a public FREUID score of
-0.00267. The accompanying frozen checkpoint, notebook, and network-isolated
+0.00283 on the complete test submission. The accompanying frozen checkpoint,
+notebook, and network-isolated
 Docker image specify the complete path from an input image directory to the
 submission file.
 
@@ -224,7 +229,9 @@ SHA-256:
 \url{https://drive.google.com/drive/folders/15pj--qzgwVzq-KjH7kJUcxnTS3ZA5c2P}
 
 \item[Reported submission]
-\path{submission_convnextv2_g4_672_alltrain.csv}
+\path{submission_convnextv2_epoch03_newest_a100.csv}\\
+142,818 rows; SHA-256:\\
+\nolinkurl{94a6ae437bf44848ef51490bdc90475d8454445f488b97cca124cf3a62d48b9b}
 
 \item[Container contract]
 Input: flat image directory at \path{/data}.\\

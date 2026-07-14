@@ -15,13 +15,14 @@ After July 13, 2026, do not change model weights, architecture, or training code
 
 ## Final Kaggle Submission
 
-- Kaggle team name: TODO
-- Kaggle usernames: TODO
-- Final submission label/time as shown on Kaggle: `submission_convnextv2_g4_672_alltrain.csv` / TODO time
-- Public leaderboard score: `0.00267` user-reported
-- Private leaderboard score: TODO
-- Selected CSV path: `/content/drive/MyDrive/FREUID_2026/final_reproducibility/best_public_convnextv2_672/submission.csv` after export
-- Selected CSV SHA256: TODO
+- Kaggle team name: `Hanif Noer Rofiq`
+- Kaggle usernames: `hanifnoerr`
+- Final submission label/time as shown on Kaggle: `submission_convnextv2_epoch03_newest_a100.csv` / fill exact Kaggle timestamp before posting
+- Public leaderboard score: `0.00283` user-reported
+- Private leaderboard score: unavailable when the package was prepared
+- Selected CSV path in the A100 notebook: `/content/freuid_a100_run/submission_convnextv2_epoch03_newest_a100.csv`
+- Selected CSV rows: `142,818` (`142,818` resolved images; no dummy rows)
+- Selected CSV SHA256: `94a6ae437bf44848ef51490bdc90475d8454445f488b97cca124cf3a62d48b9b`
 
 ## Final Model
 
