@@ -1,12 +1,19 @@
-# Technical Report
+# Technical report
 
-The official reproducibility page requires a short PDF with at least:
+Source: `freuid_technical_report.tex`
 
-- introduction
-- method
-- data, including external sources
-- inference
-- results
-- reproducibility commands, Docker image, hardware
+Bibliography: `references.bib`
 
-Fill `freuid_technical_report.tex`, compile it to PDF, and link the PDF in the Kaggle pinned-thread reply.
+Submission artifact: `freuid_technical_report.pdf`
+
+The report documents the frozen ConvNeXtV2 checkpoint, Google Colab G4 96 GB
+training run, public leaderboard result, and Docker inference contract.
+
+Compile from this directory with a LaTeX installation that provides BibTeX:
+
+```bash
+pdflatex freuid_technical_report.tex
+bibtex freuid_technical_report
+pdflatex freuid_technical_report.tex
+pdflatex freuid_technical_report.tex
+```

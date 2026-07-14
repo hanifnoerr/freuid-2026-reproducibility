@@ -1,87 +1,241 @@
-\documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
-\usepackage{hyperref}
-\usepackage{booktabs}
+\documentclass[10pt,twocolumn]{article}
 
-\title{FREUID Challenge 2026 Technical Report}
-\author{Hanif Noer Rofiq}
-\date{July 2026}
+\usepackage[margin=0.72in,columnsep=0.25in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{flushend}
+\usepackage[protrusion=true,expansion=false]{microtype}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+
+\setlist{nosep,leftmargin=*}
+\setlength{\parindent}{1em}
+\setlength{\parskip}{0pt}
+\urlstyle{same}
+
+\title{High-Resolution ConvNeXtV2 for Identity-Document Fraud Detection}
+\author{Hanif Noer Rofiq\\
+\small Kaggle: \texttt{hanifnoerr}}
+\date{FREUID Challenge 2026}
 
 \begin{document}
 \maketitle
 
+\begin{abstract}
+We describe our submission to the FREUID Challenge 2026, a binary
+identity-document fraud detection benchmark. The system fine-tunes a
+ConvNeXtV2-Large classifier at $672\!\times\!672$ resolution using all 69,352
+labeled training images. The training recipe is intentionally direct: mild
+photometric and geometric augmentation, binary cross-entropy, AdamW, cosine
+learning-rate decay, and mixed-precision optimization. A single model obtained
+a public leaderboard FREUID score of \textbf{0.00267} (lower is better). The
+private score was unavailable when this report was prepared. We release the
+training notebook, frozen checkpoint identity, and a network-isolated Docker
+inference path.
+\end{abstract}
+
 \section{Introduction}
-This report describes the final FREUID Challenge 2026 submission. The task is binary fraud detection for identity-document images. Scores are numeric fraud probabilities, where higher values indicate higher confidence that a document is fraudulent.
+Identity-document fraud may involve digital editing, generated content,
+physical manipulation, or recapture through print-and-scan and display-camera
+pipelines. These processes can alter both semantic content and weak imaging
+traces. FREUID evaluates a detector on genuine and fraudulent document images,
+including document domains not represented in the visible training data
+\cite{the-freuid-challenge-2026-ijcai-ecai}. For each image $x$, a method emits
+a continuous fraud score $p(y=1\mid x)$; larger values denote stronger evidence
+of fraud.
 
-\section{Method}
-The final model is based on \texttt{convnextv2\_large.fcmae\_ft\_in22k\_in1k\_384} from \texttt{timm}, fine-tuned as a single-logit binary classifier.
+The challenge metric combines the area under the detection-error trade-off
+curve (AuDET) with APCER at 1\% BPCER. The resulting FREUID score lies in
+$[0,1]$ and is minimized. This operating regime rewards ranking quality while
+also penalizing attacks that remain undetected at a low bona-fide error rate.
 
-Images are resized/cropped to \texttt{672x672}. Training augmentations used random resized crop with scale \texttt{0.88--1.0}, color jitter, light Gaussian blur, and small rotation. Inference uses resize to \texttt{672}, center crop, ImageNet normalization, and sigmoid conversion from logits to fraud probabilities.
+Our final system uses one high-resolution ConvNeXtV2-Large model. We selected
+this design because convolutional feature hierarchies provide a useful balance
+between global document structure and localized texture evidence, while the
+$672$-pixel input retains more manipulation detail than the backbone's native
+$384$-pixel fine-tuning resolution.
 
 \section{Data}
-The model uses the official FREUID Challenge training data. The local training labels contain 69,352 rows, with 40,005 negative and 29,347 positive labels.
+We use only the official FREUID training set. It contains 69,352 RGB document
+images with binary labels: 40,005 bona-fide samples and 29,347 attacks. The
+visible data cover five country/document-type groups: Egypt, Guinea, Benin,
+Mozambique, and Mauritius. We do not use external identity-document images,
+pseudo-labels, or synthetic training samples.
 
-External resources:
-\begin{itemize}
-  \item \texttt{timm} pretrained ConvNeXtV2 weights.
-  \item PyTorch, torchvision, Pillow, and timm runtime dependencies.
-  \item Final checkpoint hosted in a public Google Drive folder for Docker build-time retrieval.
-\end{itemize}
+During the public phase, 7,821 test images were available although the sample
+submission contained 142,818 identifiers. Following the organizer's protocol,
+the unavailable private identifiers were assigned placeholders; those values
+were not evaluated on the public leaderboard. The released Docker pipeline does
+not use placeholders: it produces one prediction for each image mounted by the
+organizer.
+
+The only external model resource is the ConvNeXtV2-Large FCMAE checkpoint
+distributed with \texttt{timm}. This initialization was learned with the FCMAE
+procedure and subsequently fine-tuned on ImageNet classification data
+\cite{woo2023convnextv2,wightman2019timm}.
+
+\section{Method}
+\subsection{Architecture}
+ConvNeXtV2 augments the modern ConvNeXt design with Global Response
+Normalization and is co-designed with fully convolutional masked autoencoding
+\cite{woo2023convnextv2}. We instantiate the Large variant through
+\texttt{timm}, replace its classification head with one output logit $z$, and
+compute the submitted probability as $\sigma(z)$. No ensembling, auxiliary
+classifier, metadata feature, threshold calibration, or test-time augmentation
+is used.
+
+\subsection{Image Processing}
+For training, each RGB image undergoes a bicubic random resized crop to
+$672\!\times\!672$ with area scale in $[0.88,1.0]$. Color jitter is applied with
+probability 0.5 (brightness 0.14, contrast 0.14, saturation 0.05), Gaussian blur
+with probability 0.12 (kernel 3, $\sigma\in[0.1,1.0]$), and rotation within
+$\pm1.5^\circ$. We then apply ImageNet mean and standard-deviation
+normalization.
+
+At inference, the shorter image side is resized to 672 pixels with bicubic
+interpolation, preserving aspect ratio, followed by a $672\!\times\!672$ center
+crop and the same normalization. This deterministic transform is shared by the
+Colab inference notebook and Docker entry point.
 
 \section{Training}
-Training was performed in Google Colab/GPU environment using the notebooks in this repository.
+The model was trained on one Google Colab G4 runtime exposing 96~GB of GPU
+memory. The run used all labeled samples (\texttt{VAL\_TYPE=None}); therefore,
+no held-out validation metric was used to select the reported checkpoint. This
+choice maximized the labeled data available to the final public model but makes
+the leaderboard the only reported generalization measurement.
 
-\begin{itemize}
-  \item Main notebook: \texttt{notebooks/freuid\_convnextv2\_g4\_672\_alltrain\_best\_public.ipynb}
-  \item Batch size: 24
-  \item Initial learning rate: \texttt{1e-5}
-  \item Weight decay: \texttt{0.05}
-  \item Training epochs: 3
-  \item Final selected checkpoint: epoch 3 \texttt{best.pt} from the run that produced the public score below
-\end{itemize}
-
-\section{Results}
-The current selected model is the user-reported best public leaderboard submission.
-
-\begin{center}
-\begin{tabular}{ll}
+\begin{table}[t]
+\centering
+\caption{Frozen training configuration.}
+\label{tab:training}
+\small
+\begin{tabular}{@{}ll@{}}
 \toprule
-Item & Value \\
+Setting & Value \\
 \midrule
-Final submission label/time & \texttt{submission\_convnextv2\_g4\_672\_alltrain.csv} / TODO time \\
-Public score & 0.00267 \\
-Private score & TODO \\
-Selected checkpoint SHA256 & TODO \\
+Input resolution & $672\times672$ \\
+Epochs & 3 \\
+Batch size & 24 \\
+Optimizer & AdamW \\
+Initial learning rate & $1\times10^{-5}$ \\
+Weight decay & 0.05 \\
+Loss & BCE with logits \\
+Schedule & cosine, $T_{\max}=3$ \\
+Gradient clipping & global norm 1.0 \\
+Random seed & 42 \\
+Data-loader workers & 12 \\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{table}
 
-\section{Inference}
-The Docker package reads a flat image directory mounted at \texttt{/data} and writes \texttt{/submissions/submission.csv}. The row id is the filename stem. The Docker runtime does not require network access.
+Table~\ref{tab:training} summarizes the frozen configuration. We optimize all
+network parameters without class weighting. PyTorch automatic mixed precision
+uses bfloat16 when supported and float16 otherwise; gradient scaling is enabled
+for float16. Inputs and model parameters use channels-last memory format, and
+TF32 is enabled for supported matrix and convolution operations. The optimizer
+is AdamW with an initial learning rate of $10^{-5}$ and weight decay 0.05. A
+cosine annealing schedule spans the three training epochs. Gradients are clipped
+to a maximum global norm of 1.0.
+
+Because the final run has no validation partition, the checkpoint named
+\texttt{best.pt} is updated after every epoch. The selected artifact is the
+epoch-3 checkpoint produced by the frozen notebook.
+
+\section{Results}
+The selected all-train ConvNeXtV2 submission achieved a public leaderboard
+FREUID score of \textbf{0.00267}. Lower scores are better. The private score was
+unavailable when this report was prepared, so we do not report or infer a
+private-set result. The submission is produced by a single checkpoint and a
+single deterministic center-crop inference pass.
 
 \section{Reproducibility}
-Build and run. The Docker build downloads the final checkpoint from the
-documented public Google Drive folder if it is not already present under
-\texttt{reproducibility/model/model.pt}. Inference itself uses no network.
+The Docker build retrieves the selected checkpoint from public storage and
+verifies its SHA-256 before embedding it in the image. Runtime inference
+requires no network access. Dependencies are pinned in
+\path{reproducibility/requirements.txt}; the base image is
+\texttt{pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime}.
 
+The organizer mounts a flat image directory at \path{/data}. The container
+converts each supported image to RGB, applies the deterministic preprocessing,
+runs sigmoid scoring, and writes exactly two columns, \texttt{id,label}, to
+\path{/submissions/submission.csv}. The identifier is the input filename stem.
+Predictions are checked for uniqueness, finiteness, and membership in $[0,1]$.
+
+\begin{small}
 \begin{verbatim}
 cd reproducibility
-docker build -t freuid-repro:local .
+docker build -t freuid-repro .
 mkdir -p out
-docker run --rm --network none \
-  -v /path/to/flat/test/images:/data:ro \
+docker run --rm --gpus all \
+  --network none \
+  -v /path/to/images:/data:ro \
   -v "$PWD/out:/submissions" \
-  freuid-repro:local
+  freuid-repro
 \end{verbatim}
+\end{small}
 
-If the model checkpoint is not baked into the image, mount it read-only:
+The reference evaluation target is one NVIDIA A100 40~GB GPU with at most 24
+CPU cores. The default Docker batch size is 16 and the worker count is 8; both
+may be changed through environment variables without changing model outputs.
 
-\begin{verbatim}
-docker run --rm --network none \
-  -v /path/to/flat/test/images:/data:ro \
-  -v /path/to/final_checkpoint.pt:/models/model.pt:ro \
-  -v "$PWD/out:/submissions" \
-  freuid-repro:local
-\end{verbatim}
+\section{Limitations}
+The reported score comes from the public split only. The selected run trains on
+all labels and consequently provides no independent estimate of calibration or
+out-of-domain performance. It also uses one center crop, which may discard cues
+near the long image boundary. These choices favor a simple and auditable final
+pipeline but leave room for document-type holdouts, multi-crop evaluation, and
+model ensembles in future work.
+
+\section{Conclusion}
+Our submission is a single high-resolution ConvNeXtV2-Large fraud classifier
+trained on the complete official training set. A small augmentation policy and
+standard binary optimization were sufficient to obtain a public FREUID score of
+0.00267. The accompanying frozen checkpoint, notebook, and network-isolated
+Docker image specify the complete path from an input image directory to the
+submission file.
+
+\section{Artifact Manifest}
+The public implementation is available on
+\href{https://github.com/hanifnoerr/freuid-2026-reproducibility}{GitHub}. Model
+and training code were frozen before the private test release. The identifiers
+below define the exact reported system.
+
+\begin{description}[style=nextline,font=\normalfont\bfseries]
+\item[Code freeze]
+\path{freuid-code-freeze-2026-07-13}\\
+Commit \path{707309a0fb08b176858bfb4e9909b45ef728cdb5}
+
+\item[Model identifier]
+\path{convnextv2_large.fcmae_ft_in22k_in1k_384}
+
+\item[Training notebook]
+\path{notebooks/freuid_convnextv2_g4_672_alltrain_best_public.ipynb}\\
+SHA-256:
+\nolinkurl{eeeecd050a11e06bfd4ede9f930c4807564867c0c30ec7432029c5939e20fa57}
+
+\item[Selected checkpoint]
+Epoch 3, file \path{best.pt}, approximately 2.2~GB.\\
+SHA-256:
+\nolinkurl{bb3870c09ec7fa21255df1cff40b6cd2ff5a7290904562d8e43a284e4ba5c41a}
+
+\item[Checkpoint storage]
+\url{https://drive.google.com/drive/folders/15pj--qzgwVzq-KjH7kJUcxnTS3ZA5c2P}
+
+\item[Reported submission]
+\path{submission_convnextv2_g4_672_alltrain.csv}
+
+\item[Container contract]
+Input: flat image directory at \path{/data}.\\
+Output: \path{/submissions/submission.csv}.\\
+Columns: \texttt{id,label}; one finite score per input image.
+\end{description}
+
+\begingroup
+\raggedright
+\bibliographystyle{ieeetr}
+\bibliography{references}
+\endgroup
 
 \end{document}

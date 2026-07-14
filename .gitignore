@@ -26,6 +26,12 @@ reproducibility/*.pid
 reproducibility/discussion_*.json
 reproducibility/forum_topics_*.json
 reproducibility/competition_current.json
+reproducibility/report/build/
+reproducibility/report/*.aux
+reproducibility/report/*.bbl
+reproducibility/report/*.blg
+reproducibility/report/*.log
+reproducibility/report/*.out
 
 # Only publish the frozen training and A100 inference notebooks
 notebooks/*
@@ -44,3 +50,4 @@ requirements-eva02.txt
 tests/*
 !tests/test_a100_notebook.py
 !tests/test_reproducibility_package.py
+!tests/test_technical_report.py
